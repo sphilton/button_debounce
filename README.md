@@ -1,4 +1,4 @@
-# Button Debounce
+# Button Debounce for ESP32
 An interrupt driven key / button / switch debounce module for the ESP32 microcontroller series. It has been written using the Espressif ESP IDF. It features click / double click and hold detection for multiple buttons and has been written to be easily portable and re-used in your own projects.
 ## Development Environment
 This code was developed using Microsoft Visual Studio Code using a Windows 11 platform, and has been compiled and tested using the ESP-IDF extension for VSC. The latest stable version of the ESP IDF at the time of development was v5.3.1, although the code uses API functions that are present in many older versions of the ESP IDF and so should compile and run successfully with those. An ESP32-DevKitC board was used for testing and development, although this code should run on any ESP32 controller environment with the correct toolchain setup and choice of GPIOs.
