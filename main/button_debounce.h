@@ -6,10 +6,10 @@
 #include "esp_timer.h"
 #include "driver/gpio.h"
 
-#define NUM_BUTTONS (2)
-#define GPIO_BUTTON_1 (34)
-#define GPIO_BUTTON_2 (35)
-#define PULL_MODE GPIO_FLOATING
+#define NUM_BUTTONS (2)                     // Number of buttons or switches to monitor
+#define GPIO_BUTTON_1 (34)                  // GPIO number of button 1
+#define GPIO_BUTTON_2 (35)                  // GPIO number of button 2
+#define PULL_MODE GPIO_FLOATING             // No internal pull-up resistors are used - means external pull-up or pull-down resistors should be used
 #define DEBOUNCE_PERIOD (10000)             // 10ms debounce period
 #define DOUBLE_CLICK_PERIOD (500000)        // 500ms timeout to trigger a double click event
 #define HOLD_PERIOD (2000000)               // 2s button hold trigger

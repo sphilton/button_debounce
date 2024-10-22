@@ -167,6 +167,13 @@ static void button_event_task(void *arg)
                                                                                                                       : ev.button_state == BUTTON_CLICK        ? "click"
                                                                                                                       : ev.button_state == BUTTON_DOUBLE_CLICK ? "double-click"
                                                                                                                                                                : "hold");
+            /* Add code here to detect button events and call your own functions
+            e.g.
+            if(ev.button_number == 0 && ev.button_state = BUTTON_CLICK)
+            {
+                your_function();
+            }
+            */
         }
     }
 }
@@ -177,12 +184,21 @@ esp_err_t button_debounce_init()
     {
         button_event_queue = xQueueCreate(BUTTON_EVENT_QUEUE_LENGTH, sizeof(button_event_t));
     }
+    else
+    {
+        return ESP_ERR_NOT_ALLOWED;
+    }
 
     if (!button_event_task_handle)
     {
         xTaskCreate(button_event_task, "button_event_task", 4096, NULL, 10, &button_event_task_handle);
     }
+    else
+    {
+        return ESP_ERR_NOT_ALLOWED;
+    }
 
+    // Repeat these code blocks as needed, once per button. Configure each option as you wish.
     buttons[0].gpio = GPIO_BUTTON_1;
     buttons[0].active_high = false;
     buttons[0].double_click_detection = true;
@@ -194,6 +210,7 @@ esp_err_t button_debounce_init()
     buttons[1].double_click_detection = true;
     buttons[1].hold_detection = true;
     buttons[1].repeat_on_hold = true;
+    // End of button configuration code blocks
 
     gpio_config_t io_conf = {};
     gpio_pull_mode_t pull_mode = PULL_MODE;
@@ -206,9 +223,17 @@ esp_err_t button_debounce_init()
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pull_up_en = (pull_mode == GPIO_PULLUP_ONLY || pull_mode == GPIO_PULLUP_PULLDOWN);
     io_conf.pull_down_en = (pull_mode == GPIO_PULLDOWN_ONLY || pull_mode == GPIO_PULLUP_PULLDOWN);
-    gpio_config(&io_conf);
+    if (gpio_config(&io_conf) != ESP_OK)
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
 
-    gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
+    esp_err_t err = ESP_OK;
+    err = gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
+    if (err != ESP_OK)
+    {
+        return err;
+    }
     for (uint8_t button = 0; button < NUM_BUTTONS; button++)
     {
         buttons[button].number = button;
@@ -224,11 +249,31 @@ esp_err_t button_debounce_init()
         buttons[button].hold_repeat_timer_args.callback = &hold_repeat_timer_interrupt_handler;
         buttons[button].hold_repeat_timer_args.arg = &buttons[button];
         buttons[button].hold_repeat_timer_args.name = "hold_repeat_timer";
-        esp_timer_create(&buttons[button].debounce_timer_args, &buttons[button].debounce_timer_handle);
-        esp_timer_create(&buttons[button].double_click_timer_args, &buttons[button].double_click_timer_handle);
-        esp_timer_create(&buttons[button].hold_timer_args, &buttons[button].hold_timer_handle);
-        esp_timer_create(&buttons[button].hold_repeat_timer_args, &buttons[button].hold_repeat_timer_handle);
-        gpio_isr_handler_add(buttons[button].gpio, gpio_isr_handler, &buttons[button]);
+        err = esp_timer_create(&buttons[button].debounce_timer_args, &buttons[button].debounce_timer_handle);
+        if (err != ESP_OK)
+        {
+            return err;
+        }
+        err = esp_timer_create(&buttons[button].double_click_timer_args, &buttons[button].double_click_timer_handle);
+        if (err != ESP_OK)
+        {
+            return err;
+        }
+        err = esp_timer_create(&buttons[button].hold_timer_args, &buttons[button].hold_timer_handle);
+        if (err != ESP_OK)
+        {
+            return err;
+        }
+        err = esp_timer_create(&buttons[button].hold_repeat_timer_args, &buttons[button].hold_repeat_timer_handle);
+        if (err != ESP_OK)
+        {
+            return err;
+        }
+        err = gpio_isr_handler_add(buttons[button].gpio, gpio_isr_handler, &buttons[button]);
+        if (err != ESP_OK)
+        {
+            return err;
+        }
     }
     return ESP_OK;
 }
