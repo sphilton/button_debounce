@@ -10,9 +10,10 @@
 #define GPIO_BUTTON_1 (34)
 #define GPIO_BUTTON_2 (35)
 #define PULL_MODE GPIO_FLOATING
-#define DEBOUNCE_PERIOD (10000)     // 10ms debounce period
-#define HOLD_PERIOD (2000000)       // 2s button hold trigger
-#define HOLD_CLICK_REPEAT_PERIOD (200000) // 200ms delay between repeated clicks when button is held
+#define DEBOUNCE_PERIOD (10000)             // 10ms debounce period
+#define DOUBLE_CLICK_PERIOD (500000)        // 500ms timeout to trigger a double click event
+#define HOLD_PERIOD (2000000)               // 2s button hold trigger
+#define HOLD_CLICK_REPEAT_PERIOD (200000)   // 200ms delay between repeated clicks when button is held
 #define BUTTON_EVENT_QUEUE_LENGTH (10)
 
 esp_err_t button_debounce_init();
