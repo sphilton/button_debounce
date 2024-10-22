@@ -78,22 +78,25 @@ static void IRAM_ATTR debounce_timer_interrupt_handler(void *arg)
             xQueueSendFromISR(button_event_queue, &ev, NULL);
             ev.button_state = BUTTON_CLICK;
             xQueueSendFromISR(button_event_queue, &ev, NULL);
-            if (!button->hold_timer_running)
+            if (!button->hold_timer_running && button->hold_detection)
             {
                 esp_timer_start_once(button->hold_timer_handle, HOLD_PERIOD);
                 button->hold_timer_running = true;
             }
-            if (!button->double_click_timer_running)
+            if (button->double_click_detection)
             {
-                esp_timer_start_once(button->double_click_timer_handle, DOUBLE_CLICK_PERIOD);
-                button->double_click_timer_running = true;
-            }
-            else
-            {
-                ev.button_state = BUTTON_DOUBLE_CLICK;
-                xQueueSendFromISR(button_event_queue, &ev, NULL);
-                esp_timer_stop(button->double_click_timer_handle);
-                button->double_click_timer_running = false;
+                if (!button->double_click_timer_running)
+                {
+                    esp_timer_start_once(button->double_click_timer_handle, DOUBLE_CLICK_PERIOD);
+                    button->double_click_timer_running = true;
+                }
+                else
+                {
+                    ev.button_state = BUTTON_DOUBLE_CLICK;
+                    xQueueSendFromISR(button_event_queue, &ev, NULL);
+                    esp_timer_stop(button->double_click_timer_handle);
+                    button->double_click_timer_running = false;
+                }
             }
         }
         else
@@ -134,7 +137,7 @@ static void IRAM_ATTR hold_timer_interrupt_handler(void *arg)
         {
             ev.button_state = BUTTON_CLICK;
             xQueueSendFromISR(button_event_queue, &ev, NULL);
-            if (!button->hold_repeat_timer_running)
+            if (!button->hold_repeat_timer_running && button->repeat_on_hold)
             {
                 esp_timer_start_periodic(button->hold_repeat_timer_handle, HOLD_CLICK_REPEAT_PERIOD);
                 button->hold_repeat_timer_running = true;
@@ -240,35 +243,45 @@ esp_err_t button_debounce_init()
         buttons[button].debounce_timer_args.callback = &debounce_timer_interrupt_handler;
         buttons[button].debounce_timer_args.arg = &buttons[button];
         buttons[button].debounce_timer_args.name = "debounce_timer";
-        buttons[button].double_click_timer_args.callback = &double_click_timer_interrupt_handler;
-        buttons[button].double_click_timer_args.arg = &buttons[button];
-        buttons[button].double_click_timer_args.name = "double_click_timer";
-        buttons[button].hold_timer_args.callback = &hold_timer_interrupt_handler;
-        buttons[button].hold_timer_args.arg = &buttons[button];
-        buttons[button].hold_timer_args.name = "hold_timer";
-        buttons[button].hold_repeat_timer_args.callback = &hold_repeat_timer_interrupt_handler;
-        buttons[button].hold_repeat_timer_args.arg = &buttons[button];
-        buttons[button].hold_repeat_timer_args.name = "hold_repeat_timer";
         err = esp_timer_create(&buttons[button].debounce_timer_args, &buttons[button].debounce_timer_handle);
         if (err != ESP_OK)
         {
             return err;
         }
-        err = esp_timer_create(&buttons[button].double_click_timer_args, &buttons[button].double_click_timer_handle);
-        if (err != ESP_OK)
+        if (buttons[button].double_click_detection)
         {
-            return err;
+            buttons[button].double_click_timer_args.callback = &double_click_timer_interrupt_handler;
+            buttons[button].double_click_timer_args.arg = &buttons[button];
+            buttons[button].double_click_timer_args.name = "double_click_timer";
+            err = esp_timer_create(&buttons[button].double_click_timer_args, &buttons[button].double_click_timer_handle);
+            if (err != ESP_OK)
+            {
+                return err;
+            }
         }
-        err = esp_timer_create(&buttons[button].hold_timer_args, &buttons[button].hold_timer_handle);
-        if (err != ESP_OK)
+        if (buttons[button].hold_detection)
         {
-            return err;
+            buttons[button].hold_timer_args.callback = &hold_timer_interrupt_handler;
+            buttons[button].hold_timer_args.arg = &buttons[button];
+            buttons[button].hold_timer_args.name = "hold_timer";
+            err = esp_timer_create(&buttons[button].hold_timer_args, &buttons[button].hold_timer_handle);
+            if (err != ESP_OK)
+            {
+                return err;
+            }
+            if (buttons[button].repeat_on_hold)
+            {
+                buttons[button].hold_repeat_timer_args.callback = &hold_repeat_timer_interrupt_handler;
+                buttons[button].hold_repeat_timer_args.arg = &buttons[button];
+                buttons[button].hold_repeat_timer_args.name = "hold_repeat_timer";
+                err = esp_timer_create(&buttons[button].hold_repeat_timer_args, &buttons[button].hold_repeat_timer_handle);
+                if (err != ESP_OK)
+                {
+                    return err;
+                }
+            }
         }
-        err = esp_timer_create(&buttons[button].hold_repeat_timer_args, &buttons[button].hold_repeat_timer_handle);
-        if (err != ESP_OK)
-        {
-            return err;
-        }
+
         err = gpio_isr_handler_add(buttons[button].gpio, gpio_isr_handler, &buttons[button]);
         if (err != ESP_OK)
         {

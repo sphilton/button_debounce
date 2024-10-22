@@ -74,6 +74,6 @@ As indicated by the comments, this is where you should add the functionality fro
     buttons[1].repeat_on_hold = true;
     // End of button configuration code blocks
 ```
-This code block determines the order and ev.button_number values that each of your buttons will have. You will need to set the GPIO number of each of your button inputs as well as well they are active high or low. The example here uses external pull-up resistors on each button, so the buttons are configured as active low. If double-click or hold event detection are not required, then they may be disabled here as can the repeated click event functionality of the hold state.
+This code block determines the order and ev.button_number values that each of your buttons will have. You will need to set the GPIO number of each of your button inputs as well as well they are active high or low. The example here uses external pull-up resistors on each button, so the buttons are configured as active low. If double-click or hold event detection are not required, then they may be disabled here as can the repeated click event functionality of the hold state. If you have more than a few buttons to configure, then it may be more efficient to use a for loop here.
 
 Hopefully you find the code easy to use and useful in your own projects!
