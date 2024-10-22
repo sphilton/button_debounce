@@ -9,8 +9,8 @@
 #include "button_debounce.h"
 
 #define TAG_BUTTON_DEBOUNCE "button_debounce"
-#define BUTTON_ACTIVE_LOW (0)
-#define BUTTON_ACTIVE_HIGH (1)
+// #define BUTTON_ACTIVE_LOW (0)
+// #define BUTTON_ACTIVE_HIGH (1)
 #define ESP_INTR_FLAG_DEFAULT (0)
 
 typedef enum
