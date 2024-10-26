@@ -62,13 +62,13 @@ As indicated by the comments, this is where you should add the functionality fro
 ```
     // Repeat these code blocks as needed, once per button. Configure each option as you wish.
     buttons[0].gpio = GPIO_BUTTON_1;
-    buttons[0].active_high = false;
+    buttons[0].active_state = BUTTON_ACTIVE_LOW;
     buttons[0].double_click_detection = true;
     buttons[0].hold_detection = true;
     buttons[0].repeat_on_hold = true;
 
     buttons[1].gpio = GPIO_BUTTON_2;
-    buttons[1].active_high = false;
+    buttons[1].active_state = BUTTON_ACTIVE_LOW;
     buttons[1].double_click_detection = true;
     buttons[1].hold_detection = true;
     buttons[1].repeat_on_hold = true;
