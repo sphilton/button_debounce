@@ -9,8 +9,8 @@
 #include "button_debounce.h"
 
 #define TAG_BUTTON_DEBOUNCE "button_debounce"
-// #define BUTTON_ACTIVE_LOW (0)
-// #define BUTTON_ACTIVE_HIGH (1)
+#define BUTTON_ACTIVE_LOW (false)
+#define BUTTON_ACTIVE_HIGH (true)
 #define ESP_INTR_FLAG_DEFAULT (0)
 
 typedef enum
@@ -26,7 +26,7 @@ typedef struct
 {
     uint8_t number;
     uint8_t gpio;
-    bool active_high;
+    bool active_state;
     esp_timer_handle_t debounce_timer_handle;
     esp_timer_create_args_t debounce_timer_args;
     bool debounce_timer_running;
@@ -72,7 +72,7 @@ static void IRAM_ATTR debounce_timer_interrupt_handler(void *arg)
     if (button_event_queue)
     {
         int gpio_level = gpio_get_level(button->gpio);
-        if ((gpio_level == 1 && button->active_high) || (gpio_level == 0 && !button->active_high))
+        if ((gpio_level == 1 && button->active_state) || (gpio_level == 0 && !button->active_state))
         {
             ev.button_state = BUTTON_DOWN;
             xQueueSendFromISR(button_event_queue, &ev, NULL);
@@ -203,13 +203,13 @@ esp_err_t button_debounce_init()
 
     // Repeat these code blocks as needed, once per button. Configure each option as you wish.
     buttons[0].gpio = GPIO_BUTTON_1;
-    buttons[0].active_high = false;
+    buttons[0].active_state = BUTTON_ACTIVE_LOW;
     buttons[0].double_click_detection = true;
     buttons[0].hold_detection = true;
     buttons[0].repeat_on_hold = true;
 
     buttons[1].gpio = GPIO_BUTTON_2;
-    buttons[1].active_high = false;
+    buttons[1].active_state = BUTTON_ACTIVE_LOW;
     buttons[1].double_click_detection = true;
     buttons[1].hold_detection = true;
     buttons[1].repeat_on_hold = true;
